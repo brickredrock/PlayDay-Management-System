@@ -3,7 +3,7 @@ import os
 import configparser
 from os.path import exists
 import csv
-#from pdms_showresults import PDMSShowResults as ShowResults
+#Other application imports
 import pdms_showresults
 import pdms_timeentry
 import pdms_entrygrid

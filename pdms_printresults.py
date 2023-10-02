@@ -85,6 +85,44 @@ def WinnerReports(pathoffile, AgeGroup):
                 riderdict = dict(e.split(':') for e in riderappendstring.split(','))
                 riderlist.append(riderdict)
     print(riderlist)
+    for rider in riderlist:
+        if rider['Barrels1'] != '':
+            rider['Barrels1'] = float(rider['Barrels1'])
+        else:
+            rider['Barrels1'] = 0
+        if rider['Barrels2'] != '':
+            rider['Barrels2'] = float(rider['Barrels2'])
+        else:
+            rider['Barrels2'] = 0
+        if rider['Barrels3'] != '':
+            rider['Barrels3'] = float(rider['Barrels3'])
+        else:
+            rider['Barrels3'] = 0
+        if rider['StraightAway1'] != '':
+            rider['StraightAway1'] = float(rider['StraightAway1'])
+        else:
+            rider['StraightAway1'] = 0
+        if rider['StraightAway2'] != '':
+            rider['StraightAway2'] = float(rider['StraightAway2'])
+        else:
+            rider['StraightAway2'] = 0
+        if rider['StraightAway3'] != '':
+            rider['StraightAway3'] = float(rider['StraightAway3'])
+        else:
+            rider['StraightAway3'] = 0
+        if rider['Poles1'] != '':
+            rider['Poles1'] = float(rider['Poles1'])
+        else:
+            rider['Poles1'] = 0
+        if rider['Poles2'] != '':
+            rider['Poles2'] = float(rider['Poles2'])
+        else:
+            rider['Poles2'] = 0
+        if rider['Poles3'] != '':
+            rider['Poles3'] = float(rider['Poles3'])
+        else:
+            rider['Poles3'] = 0
+        
     if len(riderlist) == 0:
         riderappendstring = "Rider:No Riders,Horse:No Riders,Barrels1:0,Barrels2:0,Barrels3:0,StraightAway1:0,StraightAway2:0,StraightAway3:0,Poles1:0,Poles2:0,Poles3:0"
         riderdict = dict(e.split(':') for e in riderappendstring.split(','))
@@ -92,23 +130,24 @@ def WinnerReports(pathoffile, AgeGroup):
     for currentkey in list(riderlist[0].keys()):
         if currentkey == 'Rider':
             pass
-        if currentkey == 'Horse':
+        elif currentkey == 'Horse':
             pass                    
-        riderlist.sort(key=lambda x: x[currentkey])
-        recordcounter = 0
-        for times in riderlist:
-            if times[currentkey] == '999.999':
-                times[str(currentkey + "points")] = "0"
-            elif times[currentkey] != '':
-                eventpoints = 10 - recordcounter
-                if eventpoints < 0:
-                    eventpoints = 0
-                if times[currentkey] == '':
-                    eventpoints = 0
-                times[str(currentkey + "points")] = str(eventpoints)
-                recordcounter += 1
-            else:
-                times[str(currentkey + "points")] = "0"
+        else:
+            riderlist.sort(key=lambda x: x[currentkey])
+            recordcounter = 0
+            for times in riderlist:
+                if times[currentkey] == 999.999:
+                    times[str(currentkey + "points")] = "0"
+                elif times[currentkey] != 0:
+                    eventpoints = 10 - recordcounter
+                    if eventpoints < 0:
+                        eventpoints = 0
+                    if times[currentkey] == 0:
+                        eventpoints = 0
+                    times[str(currentkey + "points")] = str(eventpoints)
+                    recordcounter += 1
+                else:
+                    times[str(currentkey + "points")] = "0"
     with open(str(AgeGroup + ' Standings.html'), 'w') as htmlout:
         htmlout.write('<html>\n')
     for event in EventString:

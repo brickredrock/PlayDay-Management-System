@@ -146,7 +146,7 @@ class ShowResultsPanel(wx.Panel):
         barrelscalc.sort(key=lambda x: x['Time'])
         for times in barrelscalc:
             barrelsgrid.SetCellValue(recordcounter,0,times['Rider'])
-            barrelsgrid.SetCellValue(recordcounter,1,times['Time'])
+            barrelsgrid.SetCellValue(recordcounter,1,str(times['Time']))
             if recordcounter == 0 and times['Time'] != '999.999':
                 self.BFirstPlace.SetValue(times['Rider'])
             elif recordcounter == 1 and times['Time'] != '999.999':
@@ -159,7 +159,7 @@ class ShowResultsPanel(wx.Panel):
         straightawaycalc.sort(key=lambda x: x['Time'])
         for times in straightawaycalc:
             straightawaygrid.SetCellValue(recordcounter,0,times['Rider'])
-            straightawaygrid.SetCellValue(recordcounter,1,times['Time'])
+            straightawaygrid.SetCellValue(recordcounter,1,str(times['Time']))
             if recordcounter == 0 and times['Time'] != '999.999':
                 self.SFirstPlace.SetValue(times['Rider'])
             elif recordcounter == 1 and times['Time'] != '999.999':
@@ -172,7 +172,7 @@ class ShowResultsPanel(wx.Panel):
         polescalc.sort(key=lambda x: x['Time'])
         for times in polescalc:
             polesgrid.SetCellValue(recordcounter,0,times['Rider'])
-            polesgrid.SetCellValue(recordcounter,1,times['Time'])
+            polesgrid.SetCellValue(recordcounter,1,str(times['Time']))
             if recordcounter == 0 and times['Time'] != '999.999':
                 self.PFirstPlace.SetValue(times['Rider'])
             elif recordcounter == 1 and times['Time'] != '999.999':
@@ -185,7 +185,7 @@ class ShowResultsPanel(wx.Panel):
         jackpotcalc.sort(key=lambda x: x['Time'])
         for times in jackpotcalc:
             jackpotgrid.SetCellValue(recordcounter,0,times['Rider'])
-            jackpotgrid.SetCellValue(recordcounter,1,times['Time'])
+            jackpotgrid.SetCellValue(recordcounter,1,str(times['Time']))
             if recordcounter == 0 and times['Time'] != '999.999':
                 self.JFirstPlace.SetValue(times['Rider'])
             recordcounter += 1
@@ -407,7 +407,7 @@ class ShowResultsPanel(wx.Panel):
         for ridertime in timelist:
             for riderdata in riderlist:
                 if riderdata['Rider'] == ridertime['Rider'] and riderdata['Horse'] == ridertime['Horse']:
-                    serieslist.append({"Rider":riderdata['Rider'], "Time":ridertime['Time'], "Buckle":riderdata['Buckle']})
+                    serieslist.append({"Rider":riderdata['Rider'], "Time":float(ridertime['Time']), "Buckle":riderdata['Buckle']})
         return(serieslist)
 
 if __name__ == "__main__":

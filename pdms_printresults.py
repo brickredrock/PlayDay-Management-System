@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import os
 import csv
+import webbrowser
 
 def write_data_table(pathoffile, seriesnumber,grouplist):
     #need to pass file name and path
@@ -18,6 +19,8 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
             filterstring += ' | ' + 'df[(df[\'' + event + seriesnumber + '\'] == \'True\')]'
         
     df = pd.read_csv(str(pathoffile + "\\riderdata.csv"))
+    with open('participant_list.html', 'w') as htmlout:
+        htmlout.write('<html>\n')
     for group in grouplist:
         currentgroup = df[(df['Group'] == group)]
         groupframe = pd.DataFrame()
@@ -32,8 +35,8 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
                               'Jackpot':row[str('Jackpot' + seriesnumber)]})
         groupframe = pd.DataFrame(groupdict)
         #print(groupframe.to_html(index=False,justify='left))
-        with open(str(group + '.html'), 'w') as htmlout:
-            htmlout.write('<html>\n<header><h3>Riders for ' + group + '</h3>\n')
+        with open('participant_list.html', 'a') as htmlout:
+            htmlout.write('<header><h3>Riders for ' + group + '</h3>\n')
             htmlfile = groupframe.to_html(index=False,justify='left')
             for linein in htmlfile.split('\n'):
                 if bool(re.search(r'\s+<td>True</td>', linein)):
@@ -46,7 +49,10 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
                     htmlout.write(str(re.split('<th',linein)[0] + '<th style="width:16%"' + re.split('<th',linein)[1] + '\n'))
                 else:
                     htmlout.write(linein + '\n')
-            htmlout.write('</html>\n')
+    with open('participant_list.html', 'a') as htmlout:
+        htmlout.write('</html>\n')
+    #os.startfile(str(group + '.html'), 'print')
+    webbrowser.open_new_tab('participant_list.html')
 
 def WinnerReports(pathoffile, AgeGroup):
     serieslist = []

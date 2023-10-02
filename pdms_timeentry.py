@@ -3,6 +3,9 @@ import os
 import csv
 import serial
 import time
+import re
+import configparser
+from threading import Thread
 
 class PDMSTimeEntry(wx.App):
     def __init__(self):
@@ -47,8 +50,11 @@ class TimeEntryPanel(wx.Panel):
         self.lbHorseName = wx.StaticText(self, label="", pos=(350,35))
         self.lbRiderRemain = wx.StaticText(self, label="", pos=(350,65))
         self.chNoTime = wx.CheckBox(self, label="No Time", pos=(280,95))
-        self.AutoEntry = wx.Button(self, label="Auto Entry", pos=(280,125))
-        self.AutoEntry.Bind(event=wx.EVT_BUTTON, handler=self.SerialTimer)
+        self.AutoEntry = wx.Button(self, label="Auto Entry", pos=(105,200))
+        self.AutoEntry.Bind(event=wx.EVT_BUTTON, handler=self.TimerEvent)
+        self.Cancel = wx.Button(self, label="Cancel", pos=(205,200))
+        self.Cancel.Bind(event=wx.EVT_BUTTON, handler=self.onCancel)
+        self.Cancel.Hide()
         self.lbRecordTime = wx.StaticText(self, label="Waiting for Timer...", pos=(5,180))
         self.lbRecordTime.Hide()
 
@@ -64,6 +70,7 @@ class TimeEntryPanel(wx.Panel):
         self.currentplace = 0
         self.recordfilter = []
         self.recordcounter = 0
+        self.tdata = ""
 
     def onLoad(self, event):
         self.chNoTime.SetValue(0)
@@ -158,7 +165,13 @@ class TimeEntryPanel(wx.Panel):
         addtime = False
         oldrider = False
         self.buttonPrevious.Enable()
-        self.chNoTime.SetValue(0)
+
+        try:
+            timecheck = float(self.inTimer.GetValue())
+        except:
+            wx.MessageBox(str('Invalid time entered.'), 'Error', wx.OK | wx.ICON_ERROR)
+            return
+         
         with open(self.csvfilename, 'r') as csvinput:
             reader = csv.DictReader(csvinput)
             readercounter = 0
@@ -242,6 +255,7 @@ class TimeEntryPanel(wx.Panel):
             os.remove(self.csvfilename)
             os.rename('temporary.csv', self.csvfilename)
         self.currentplace += 1
+        self.chNoTime.SetValue(0)        
         lasttime = self.inTimer.GetValue()
         if str(len(self.recordfilter)-self.currentplace) == "0":
             wx.MessageBox("Last rider was updated.  Move to next Group or Event", "No More", wx.OK | wx.ICON_INFORMATION)
@@ -266,41 +280,57 @@ class TimeEntryPanel(wx.Panel):
                 wx.MessageBox('That was the last rider. Go to the next Age Group or Event', 'Error', wx.OK | wx.ICON_ERROR)
                 self.currentplace -= 1
                 self.inTimer.SetValue(lasttime)
-                print("could not update controls for on next")
             if oldrider:
                 self.inTimer.SetValue(existingtime)
             else:
                 self.inTimer.SetValue("")
-        #self.chNoTime.SetValue(0)
+
+    def TimerEvent(self, event):
+        notifythread = Thread(target = self.NotifyTimer)
+        workthread = Thread(target = self.SerialTimer)
+        notifythread.start()
+        workthread.start()
+
+    def NotifyTimer(self):
+        self.Cancel.Show()
+        self.lbRecordTime.Show()
+
+    def onCancel(self, event):
+        self.tdata = "Cancel"
         
     def onDrag(self, event):
         #important when threading issue resolved and timer can run in background
         wx.MessageBox('Stay here while the Arena is dragged.', 'Arena Drag', wx.OK | wx.ICON_INFORMATION)
         #self.inTimer.SetFocus()
 
-    def SerialTimer(self, event):
+    def SerialTimer(self):
         #not able to thread currently
         #Move settings to INI file
         #guessed from http://www.arenamanagementsoftware.com/Arena%20Management%20FarmTek%20Timers.pdf
-        self.lbRecordTime.Show()
+        #self.lbRecordTime.Show()
         serialin = serial.Serial('COM3',1200,timeout=0,bytesize=8,parity='N',stopbits=1)
         #serialin.open()
-        tdata = ""
+        self.tdata = ""
         #self.chManualEntry.SetValue(False)
         #self.donevariable = False
         waitcounter = 0
-        while tdata == "":
+        while self.tdata == "":
             #serial data is byte encoded, also contains non-important info
-            tdata += str(serialin.read(20),'utf-8')
+            self.tdata += str(serialin.read(20),'utf-8')
             time.sleep(1)
             waitcounter += 1
             print(waitcounter)
-        tdata += str(serialin.read(20),'utf-8')
+        self.tdata += str(serialin.read(20),'utf-8')
         #Need to parse this and only grab time
-        print("tdata is " + tdata)
+        print("tdata is " + self.tdata)
         pattern = re.compile('\d+\.\d+')
-        for match in re.findall(pattern, tdata):
-            print(match)
+        searchstring = re.findall(pattern, self.tdata) or ["Error"]
+        for match in searchstring:
+            if match == "Error":
+                wx.MessageBox(str('Timer not sending valid time.  Received ' + self.tdata), 'Error', wx.OK | wx.ICON_ERROR)
+                self.Cancel.Hide()
+            else:
+                print(match)
         self.inTimer.SetValue(match)
         self.lbRecordTime.Hide()
         

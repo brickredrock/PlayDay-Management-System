@@ -137,34 +137,17 @@ class TimeEntryPanel(wx.Panel):
                 self.buttonPrevious.Disable()
 
     def onPrevious(self, event):
-        self.chNoTime.SetValue(0)
-        if self.currentplace == 0:
-            wx.MessageBox('Already at the beginning.', 'Error', wx.OK | wx.ICON_ERROR)
-        else:
-            self.currentplace -= 1
-            self.lbRiderName.Destroy()
-            self.lbHorseName.Destroy()
-            self.lbRiderName = wx.StaticText(self, label=self.RiderList[self.recordfilter[self.currentplace]]['Rider'], pos=(350,5))
-            self.lbHorseName = wx.StaticText(self, label=self.RiderList[self.recordfilter[self.currentplace]]['Horse'], pos=(350,35))
-            existingtime = ""
-            with open(self.csvfilename, 'r') as csvinput:
-                reader = csv.DictReader(csvinput)
-                for row in reader:
-                    if row['Rider'] == self.RiderList[self.recordfilter[self.currentplace]]['Rider'] and row['Horse'] == self.RiderList[self.recordfilter[self.currentplace]]['Horse']:
-                        existingtime = row[self.weekstring]
-                        if existingtime == "999.999":
-                            self.chNoTime.SetValue(1)
-                        break
-            self.inTimer.SetValue(existingtime)
-            self.lbRiderRemain.Destroy()
-            self.lbRiderRemain = wx.StaticText(self, label=str(int(len(self.recordfilter)-self.currentplace-1)), pos=(350,65))
-            self.buttonNext.Enable()
+        strmovement = "backward"
+        self.RecordMove(strmovement)
 
     def onNext(self, event):
+        strmovement = "forward"
+        self.RecordMove(strmovement)
+    
+    def RecordMove(self,strmovement):
         newrider = False
         addtime = False
         oldrider = False
-        self.buttonPrevious.Enable()
 
         try:
             timecheck = float(self.inTimer.GetValue())
@@ -178,14 +161,17 @@ class TimeEntryPanel(wx.Panel):
             for row in reader:
                 readercounter += 1
                 if row['Rider'] == self.RiderList[self.recordfilter[self.currentplace]]['Rider'] and row['Horse'] == self.RiderList[self.recordfilter[self.currentplace]]['Horse']:
+                    #found matching rider in timesheet
                     addtime = True
                     newrider = False
                     break
                 else:
                     newrider = True
                     addtime = False
+        # no records to iterate so we need to add a new rider and time record
         if readercounter == 0:
             newrider = True
+        #New rider, capture time from value and set to the right week, blank out the others.
         if newrider:
             if self.weekstring == "Week1":
                 if self.chNoTime.GetValue():
@@ -254,12 +240,25 @@ class TimeEntryPanel(wx.Panel):
             addtime = False
             os.remove(self.csvfilename)
             os.rename('temporary.csv', self.csvfilename)
-        self.currentplace += 1
+
+        #times updated or added, now move to next/previous record.
+        if strmovement == "forward":
+            self.currentplace += 1
+        elif strmovement == "backward":
+            self.currentplace -= 1
+            
         self.chNoTime.SetValue(0)        
         lasttime = self.inTimer.GetValue()
-        if str(len(self.recordfilter)-self.currentplace) == "0":
+        print(str(len(self.recordfilter)))
+        if len(self.recordfilter)-self.currentplace == 0:
+            print("should be at end")
             wx.MessageBox("Last rider was updated.  Move to next Group or Event", "No More", wx.OK | wx.ICON_INFORMATION)
+            self.currentplace -= 1
             self.buttonNext.Disable()
+        elif len(self.recordfilter)-self.currentplace - 1 == len(self.recordfilter):
+            print("should be at beginning")            
+            wx.MessageBox("At the beginning rider", "No More", wx.OK | wx.ICON_INFORMATION)
+            self.currentplace += 1
         else:
             try:
                 self.lbRiderName.Destroy()
@@ -279,11 +278,23 @@ class TimeEntryPanel(wx.Panel):
             except:
                 wx.MessageBox('That was the last rider. Go to the next Age Group or Event', 'Error', wx.OK | wx.ICON_ERROR)
                 self.currentplace -= 1
+                print("hit exception")
                 self.inTimer.SetValue(lasttime)
             if oldrider:
                 self.inTimer.SetValue(existingtime)
             else:
                 self.inTimer.SetValue("")
+            if self.currentplace <=0:
+                #disable previous
+                self.buttonPrevious.Disable()
+            elif self.currentplace >= len(self.RiderList):
+                #disable next
+                self.buttonNext.Disable()
+            else:
+                self.buttonPrevious.Enable()
+                self.buttonNext.Enable()
+
+
 
     def TimerEvent(self, event):
         notifythread = Thread(target = self.NotifyTimer)

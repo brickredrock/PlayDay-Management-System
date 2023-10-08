@@ -17,7 +17,7 @@ class PDMSRiderEntry(wx.App):
 class RiderEntry(wx.Frame):
     #Frame with panel for Entering Participant details
     def __init__(self, parent, title, pos):
-        wx.Frame.__init__(self, parent=parent, title=title, size=(450,350))
+        wx.Frame.__init__(self, parent=parent, title=title, size=(450,360))
         panel = RiderEntryPanel(self)
         self.Show()
 
@@ -71,6 +71,15 @@ class RiderEntryPanel(wx.Panel):
 
     def onAddMore(self, event):
         #having this Number field in the data has proven unnecessary, need to remove.
+        if self.RiderEntry.GetValue() == '':
+            wx.MessageBox('No Rider Name Entered', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        if self.HorseEntry.GetValue() == '':
+            wx.MessageBox('No Horse Entered', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        if self.AgeGroupDDown.GetValue() == '':
+            wx.MessageBox('No Age Group Chosen', 'Error', wx.OK | wx.ICON_ERROR)
+            return
         RiderNumber = 0
         with open('riderdata.csv', 'r') as incsv:
             reader = csv.DictReader(incsv)
@@ -106,6 +115,10 @@ class RiderEntryPanel(wx.Panel):
             StraightAway3 = self.StraightAwayCheckbox.GetValue()
             Poles3 = self.PolesCheckbox.GetValue()
             Jackpot3 = self.JackpotCheckbox.GetValue()
+        else:
+            #Starting Week not picked so we need to alert and break
+            wx.MessageBox('Starting Week is not picked', 'Error', wx.OK | wx.ICON_ERROR)
+            return
         with open('riderdata.csv', 'a') as outcsv:
             writer = csv.writer(outcsv)
             writer.writerow([RiderNumber, self.RiderEntry.GetValue(), self.HorseEntry.GetValue(), self.AgeGroupDDown.GetValue(),
@@ -113,11 +126,17 @@ class RiderEntryPanel(wx.Panel):
                              StraightAway2, StraightAway3, Poles1, Poles2, Poles3, Jackpot1, Jackpot2, Jackpot3])
         #After submitting entry, clear form for the next
         #Improvement opp, validate if data exists on close indicating that data not submitted and warn
-        self.RiderEntry.SetValue("")
-        self.HorseEntry.SetValue("")
+        self.BarrelsLabel.Hide()
+        self.StraightAwayLabel.Hide()
+        self.PolesLabel.Hide()
+        self.BarrelsCheckbox.Hide()
+        self.StraightAwayCheckbox.Hide()
+        self.PolesCheckbox.Hide()
+        self.JackpotLabel.Hide()
+        self.JackpotCheckbox.Hide()
+        self.RiderEntry.SetValue('')
+        self.HorseEntry.SetValue('')
         self.AgeGroupDDown.SetSelection(-1)
-        self.BuckleCheckbox.SetValue(False)
-        self.ExtraHorseCheckbox.SetValue(False)
         self.StartingWeekDDown.SetSelection(-1)
         self.BarrelsCheckbox.SetValue(False)
         self.StraightAwayCheckbox.SetValue(False)

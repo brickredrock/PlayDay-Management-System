@@ -20,6 +20,39 @@ class PlayDayApp(wx.App):
         frame = MainFrame(parent=None, title="PlayDay Program", pos=(100,100))
         frame.Show(True)
 
+class FileMenu (wx.Menu):
+    def __init__(self, parentFrame):
+        super().__init__()
+        self.OnInit()
+        self.parentFrame = parentFrame
+
+    def OnInit(self):
+        newSeries = wx.MenuItem(parentMenu=self, id=wx.ID_ANY, text="&New\tCtrl+N", kind=wx.ITEM_NORMAL)
+        self.Append(newSeries)
+        self.Bind(wx.EVT_MENU, handler=MainPanel.onNew, source=newSeries)
+
+        openSeries = wx.MenuItem(parentMenu=self, id=wx.ID_ANY, text='&Open\tCtrl+O', kind=wx.ITEM_NORMAL)
+        self.Append(openSeries)
+        self.Bind(wx.EVT_MENU, handler=MainPanel.onExisting, source=openSeries)
+
+        self.AppendSeparator() 
+        
+        settingsItem = wx.MenuItem(parentMenu=self, id=wx.ID_ANY, text='Settings', kind=wx.ITEM_NORMAL)
+        self.Append(settingsItem)
+        self.Bind(wx.EVT_MENU, handler=self.onSettings, source=settingsItem)
+
+        self.AppendSeparator() 
+
+        quitItem = wx.MenuItem(parentMenu=self, id=wx.ID_EXIT, text='&Quit\tCtrl+Q') 
+        self.Append(quitItem)
+        self.Bind(event=wx.EVT_MENU, handler=self.onQuit, source=quitItem)
+
+    def onQuit(self, event):
+        self.parentFrame.Close()
+
+    def onSettings(self, event):
+        pass
+   
 class MainFrame(wx.Frame):
     #start window
     def __init__(self, parent, title, pos):
@@ -28,38 +61,12 @@ class MainFrame(wx.Frame):
         
     def OnInit(self):
         panel = MainPanel(parent=self)
-        '''
-        FUTURE IDEA
-        menubar = wx.MenuBar()
+        menuBar = wx.MenuBar()
 
-        fileMenu = wx.Menu()
-        newitem = wx.MenuItem(fileMenu,wx.ID_NEW, text = "New",kind = wx.ITEM_NORMAL)
-        #to add icon later:
-        #newitem.SetBitmap(wx.Bitmap("new.bmp"))
-        fileMenu.Append(newitem)
-        openitem = wx.MenuItem(fileMenu,wx.ID_OPEN, text = "Open",kind = wx.ITEM_NORMAL)
-        fileMenu.Append(openitem)
-        fileMenu.AppendSeparator()
+        fileMenu = FileMenu(parentFrame=self)
+        menuBar.Append(fileMenu, '&File')
 
-        editMenu = wx.Menu()
-        settingsItem = wx.MenuItem(editMenu, 100, text = "Settings", kind = wx.ITEM_NORMAL)
-        editMenu.Append(settingsItem)
-
-        quititem = wx.MenuItem(fileMenu, wx.ID_EXIT, '&Quit\tCtrl+Q')
-        self.Bind(wx.EVT_MENU, self.onQuit, quititem)
-        self.Bind(wx.EVT_MENU, self.onNew, newitem)
-        #newitem.Bind(event = wx.EVT_MENU, handler=MainPanel.onNew)
-        fileMenu.Append(quititem)
-        menubar.Append(fileMenu, '&File')
-        menubar.Append(editMenu, '&Edit')
-        self.SetMenuBar(menubar)
-
-    def onQuit(self, event):
-        self.Close()
-
-    def onNew(self, event):
-        MainPanel.onNew(MainPanel, event)
-    '''
+        self.SetMenuBar(menuBar)
         
 class MainPanel(wx.Panel):
     def __init__(self,parent):

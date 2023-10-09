@@ -34,7 +34,6 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
                               'StraightAway':row[str('StraightAway' + seriesnumber)], 'Poles':row[str('Poles' + seriesnumber)],
                               'Jackpot':row[str('Jackpot' + seriesnumber)]})
         groupframe = pd.DataFrame(groupdict)
-        #print(groupframe.to_html(index=False,justify='left))
         with open('participant_list.html', 'a') as htmlout:
             htmlout.write('<header><h3>Riders for ' + group + '</h3>\n')
             htmlfile = groupframe.to_html(index=False,justify='left')
@@ -54,13 +53,16 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
     #os.startfile(str(group + '.html'), 'print')
     webbrowser.open_new_tab('participant_list.html')
 
-def WinnerReports(pathoffile, AgeGroup):
-    serieslist = []
+def WinnerReports(pathoffile, AgeGroup, seriesnumber):
+    #serieslist = []
     EventString = ['Barrels','StraightAway','Poles']
+    #datafile is the individual event times
     datafile = ''
     os.chdir(pathoffile)
-    timelist = []
-    seriesmax = 3
+    #timelist = []
+    #The current event day that was carried over from the combobox on pdms_showresults
+    seriesmax = int(re.split("Week",seriesnumber)[1])
+
         
     riderlist = []
     with open('riderdata.csv', 'r') as riderinput:
@@ -70,7 +72,9 @@ def WinnerReports(pathoffile, AgeGroup):
             riderappendstring = ''
             if row['Group'] == AgeGroup and row['ExtraHorse'] == "False" and row['Buckle'] == "True":
                 #riderlist.append({"Rider":row['Rider'], "Horse":row['Horse']})
-                riderappendstring = "Rider:" + row['Rider'] + ",Horse:" + row['Horse']
+                #riderappendstring = "Rider:" + row['Rider'] + ",Horse:" + row['Horse']
+                riderdict['Rider'] = row['Rider']
+                riderdict['Horse'] = row['Horse']
                 for eventid in EventString:
                     if eventid == "Barrels":
                         datafile = "barreltimes.csv"
@@ -83,14 +87,19 @@ def WinnerReports(pathoffile, AgeGroup):
                         foundit = False
                         for time in timereader:
                             if row['Rider'] == time['Rider'] and row['Horse'] == time['Horse']:
-                                riderappendstring += "," + eventid + "1:" + time['Week1'] + "," + eventid + "2:" + time['Week2'] + "," + eventid + "3:" + time['Week3']
+                                #riderappendstring += "," + eventid + "1:" + time['Week1'] + "," + eventid + "2:" + time['Week2'] + "," + eventid + "3:" + time['Week3']
+                                for timex in range(seriesmax):
+                                    keyname = eventid + str(timex + 1)
+                                    weekid = "Week" + str(timex + 1)
+                                    riderdict[keyname] = float(time[weekid])
                                 foundit = True
-                        if foundit == False:
-                            riderappendstring += "," + eventid + "1:," + eventid + "2:," + eventid + "3:"
+                        #if foundit == False:
+                        #    riderappendstring += "," + eventid + "1:," + eventid + "2:," + eventid + "3:"
                 #riderappendstring += "}"
-                riderdict = dict(e.split(':') for e in riderappendstring.split(','))
+                #riderdict = dict(e.split(':') for e in riderappendstring.split(','))
                 riderlist.append(riderdict)
-    print(riderlist)
+    #this somehow needs to be more dynamic if using dynamic event creation
+    '''
     for rider in riderlist:
         if rider['Barrels1'] != '':
             rider['Barrels1'] = float(rider['Barrels1'])
@@ -128,7 +137,8 @@ def WinnerReports(pathoffile, AgeGroup):
             rider['Poles3'] = float(rider['Poles3'])
         else:
             rider['Poles3'] = 0
-        
+    '''
+    qualifiedriders = []
     if len(riderlist) == 0:
         riderappendstring = "Rider:No Riders,Horse:No Riders,Barrels1:0,Barrels2:0,Barrels3:0,StraightAway1:0,StraightAway2:0,StraightAway3:0,Poles1:0,Poles2:0,Poles3:0"
         riderdict = dict(e.split(':') for e in riderappendstring.split(','))
@@ -139,37 +149,77 @@ def WinnerReports(pathoffile, AgeGroup):
         elif currentkey == 'Horse':
             pass                    
         else:
-            riderlist.sort(key=lambda x: x[currentkey])
+            riderlist.sort(key=lambda x: x.get(currentkey, 0.0))
             recordcounter = 0
+            #qualifieddict = {}
             for times in riderlist:
-                if times[currentkey] == 999.999:
+                if float(times.get(currentkey,0.0)) == 999.999:
                     times[str(currentkey + "points")] = "0"
-                elif times[currentkey] != 0:
+                    #qualifiedriders.append(times)
+                elif float(times.get(currentkey,0.0)) != 0.0:
                     eventpoints = 10 - recordcounter
+                    recordcounter += 1
                     if eventpoints < 0:
                         eventpoints = 0
-                    if times[currentkey] == 0:
-                        eventpoints = 0
                     times[str(currentkey + "points")] = str(eventpoints)
+                else:
+                    if currentkey in times:
+                        del times[currentkey]
+                    #qualifiedriders.append(times)
+                '''
+                    #this means they didn't run an event and do not qualify for it anymore
+                    if times[currentkey] == 0.0:
+                        #eventpoints = 0
+                        next(riderlist)
+                    #times[str(currentkey + "points")] = str(eventpoints)
                     recordcounter += 1
                 else:
-                    times[str(currentkey + "points")] = "0"
+                    continue
+                '''
+    with open(str(AgeGroup + ' Standings.html'), 'w') as htmlout:
+        htmlout.write('<html>\n')
+    overallstandings = []
+    for rider in riderlist:
+        tempdict = {}
+        for event in EventString:
+            with open(str(AgeGroup + ' Standings.html'), 'w') as htmlout:
+                htmlout.write('<html>\n')
+            tempdict['Rider'] = rider['Rider']
+            tempdict['Horse'] = rider['Horse']
+            totalscore = 0
+            notqualified = False
+            for x in range(seriesmax):
+                actualnumber = x + 1
+                if str(event + str(actualnumber) + "points") in rider:
+                    tempdict[str(event + "Day" + str(actualnumber) + "Points")] = rider.get(str(event + str(actualnumber) + "points"),0)
+                    totalscore += int(rider[str(event + str(actualnumber) + "points")])
+                else:
+                    notqualified = True
+                    break
+            if str(event + str(seriesmax) + "points") in rider and notqualified == False:
+                tempdict[str(event + "TotalPoints")] = totalscore
+            else:
+                continue
+        overallstandings.append(tempdict)
+
     with open(str(AgeGroup + ' Standings.html'), 'w') as htmlout:
         htmlout.write('<html>\n')
     for event in EventString:
         templist = []
-        for rider in riderlist:
-            templiststring = "Rider:" + rider['Rider'] + ",Horse:" + rider['Horse']
-            totalscore = 0
-            for x in range(3):
-                actualnumber = x + 1
-                templiststring += ",Day " + str(actualnumber) + " Points:" + rider[str(event + str(actualnumber) + "points")]
-                totalscore += int(rider[str(event + str(actualnumber) + "points")])
-            templiststring += ",Total Score:" + str(totalscore)
-            tempdict = dict(e.split(':') for e in templiststring.split(','))
-            templist.append(tempdict)
+        for rider in overallstandings:
+            tempdict = {}
+            tempdict['Rider'] = rider['Rider']
+            tempdict['Horse'] = rider['Horse']
+            if str(event + "TotalPoints") in rider:
+                for x in range(seriesmax):
+                    #tempdict[str(event + "Day" + str(x+1) + "Points")] = rider[str(event + "Day" + str(x+1) + "Points")]
+                    tempdict[str("Day " + str(x+1) + " Points")] = rider.get(str(event + "Day" + str(x+1) + "Points"),0)
+                #tempdict[str(event + "TotalPoints")] = rider[str(event + "TotalPoints")]
+                tempdict[str("Total")] = rider[str(event + "TotalPoints")]
+                templist.append(tempdict)
+            else:
+                continue
         tempframe = pd.DataFrame(templist)
-        #print(groupframe.to_html(index=False,justify='left))
         with open(str(AgeGroup + ' Standings.html'), 'a') as htmlout:
             if event == "Barrels":
                 eventname = "Cloverleaf"
@@ -185,8 +235,8 @@ def WinnerReports(pathoffile, AgeGroup):
                     htmlout.write(linein + '\n')
     with open(str(AgeGroup + ' Standings.html'), 'a') as htmlout:
         htmlout.write('</html>\n')
-    return(riderlist)
     
+    return(riderlist,overallstandings)
         
 if __name__ == "__main__":
     pathoffile = "C:\\Users\\tony\\OneDrive\\Projects\\playday-files\\Fall 2023\\"
@@ -194,5 +244,6 @@ if __name__ == "__main__":
     pattern = re.compile('\d+')
     seriesnumber = pattern.findall(weeknumber)
     grouplist = ['5-8','9-12','13-16','17-30','31+']
-    AgeGroup = "13-16"
-    WinnerReports(pathoffile,AgeGroup)
+    AgeGroup = "31+"
+    seriesnumber = "Week2"
+    WinnerReports(pathoffile,AgeGroup,seriesnumber)

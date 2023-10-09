@@ -142,6 +142,8 @@ class RiderEntryPanel(wx.Panel):
         self.StraightAwayCheckbox.SetValue(False)
         self.PolesCheckbox.SetValue(False)
         self.JackpotCheckbox.SetValue(False)
+        self.BuckleCheckbox.SetValue(False)
+        self.ExtraHorseCheckbox.SetValue(False)
 
 if __name__ == "__main__":
     try:

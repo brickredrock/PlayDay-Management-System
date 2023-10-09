@@ -125,8 +125,11 @@ class TimeEntryPanel(wx.Panel):
                             reader = csv.DictReader(csvinput)
                             for row in reader:
                                 if rider['Rider'] == row['Rider'] and rider['Horse'] == row['Horse']:
-                                    self.inTimer.SetValue(row[self.weekstring])
-                                    if self.inTimer.GetValue() == "999.999":
+                                    if float(row[self.weekstring]) == 0.0:
+                                        self.inTimer.SetValue('')
+                                    else:
+                                        self.inTimer.SetValue(row[self.weekstring])
+                                    if self.inTimer.GetValue() == float(999.999):
                                         self.chNoTime.SetValue(1)
                     else:
                         self.recordfilter.append(self.recordcounter)
@@ -150,7 +153,10 @@ class TimeEntryPanel(wx.Panel):
         oldrider = False
 
         try:
-            timecheck = float(self.inTimer.GetValue())
+            if self.chNoTime.GetValue():
+                timecheck = float(999.999)
+            else:
+                timecheck = float(self.inTimer.GetValue())
         except:
             wx.MessageBox(str('Invalid time entered.'), 'Error', wx.OK | wx.ICON_ERROR)
             return
@@ -175,25 +181,25 @@ class TimeEntryPanel(wx.Panel):
         if newrider:
             if self.weekstring == "Week1":
                 if self.chNoTime.GetValue():
-                    week1value = "999.999"
+                    week1value = float(999.999)
                 else:
-                    week1value = self.inTimer.GetValue()
-                week2value = ""
-                week3value = ""
+                    week1value = float(self.inTimer.GetValue())
+                week2value = float()
+                week3value = float()
             elif self.weekstring == "Week2":
-                week1value = ""
+                week1value = float()
                 if self.chNoTime.GetValue():
-                    week2value = "999.999"
+                    week2value = float(999.999)
                 else:
-                    week2value = self.inTimer.GetValue()
-                week3value = ""
+                    week2value = float(self.inTimer.GetValue())
+                week3value = float()
             elif self.weekstring == "Week3":
-                week1value = ""
-                week2value = ""
+                week1value = float()
+                week2value = float()
                 if self.chNoTime.GetValue():
-                    week3value = "999.999"
+                    week3value = float(999.999)
                 else:
-                    week3value = self.inTimer.GetValue()
+                    week3value = float(self.inTimer.GetValue())
             with open(self.csvfilename, 'a') as csvappend:
                 writer = csv.writer(csvappend)
                 writer.writerow([self.RiderList[self.recordfilter[self.currentplace]]['Rider'],self.RiderList[self.recordfilter[self.currentplace]]['Horse'],
@@ -209,25 +215,25 @@ class TimeEntryPanel(wx.Panel):
                         horsename = row['Horse']
                         if self.weekstring == "Week1":
                             if self.chNoTime.GetValue():
-                                week1value = "999.999"
+                                week1value = float(999.999)
                             else:
-                                week1value = self.inTimer.GetValue()
-                            week2value = row['Week2']
-                            week3value = row['Week3']
+                                week1value = float(self.inTimer.GetValue())
+                            week2value = float(row['Week2'])
+                            week3value = float(row['Week3'])
                         elif self.weekstring == "Week2":
-                            week1value = row['Week1']
+                            week1value = float(row['Week1'])
                             if self.chNoTime.GetValue():
-                                week2value = "999.999"
+                                week2value = float(999.999)
                             else:
-                                week2value = self.inTimer.GetValue()
-                            week3value = row['Week3']
+                                week2value = float(self.inTimer.GetValue())
+                            week3value = float(row['Week3'])
                         elif self.weekstring == "Week3":
-                            week1value = row['Week1']
-                            week2value = row['Week2']
+                            week1value = float(row['Week1'])
+                            week2value = float(row['Week2'])
                             if self.chNoTime.GetValue():
-                                week3value = "999.999"
+                                week3value = float(999.999)
                             else:
-                                week3value = self.inTimer.GetValue()
+                                week3value = float(self.inTimer.GetValue())
                         templist.append({'Rider':ridername,'Horse':horsename,'Week1':week1value,'Week2':week2value,'Week3':week3value})
                     else:
                         templist.append({'Rider':row['Rider'],'Horse':row['Horse'],'Week1':row['Week1'],'Week2':row['Week2'],'Week3':row['Week3']})
@@ -272,8 +278,8 @@ class TimeEntryPanel(wx.Panel):
                     for row in reader:
                         if row['Rider'] == self.RiderList[self.recordfilter[self.currentplace]]['Rider'] and row['Horse'] == self.RiderList[self.recordfilter[self.currentplace]]['Horse']:
                             oldrider = True
-                            existingtime = row[self.weekstring]
-                            if existingtime == "999.999":
+                            existingtime = float(row[self.weekstring])
+                            if existingtime == float(999.999):
                                 self.chNoTime.SetValue(1)
             except:
                 wx.MessageBox('That was the last rider. Go to the next Age Group or Event', 'Error', wx.OK | wx.ICON_ERROR)
@@ -281,9 +287,12 @@ class TimeEntryPanel(wx.Panel):
                 print("hit exception")
                 self.inTimer.SetValue(lasttime)
             if oldrider:
-                self.inTimer.SetValue(existingtime)
+                if existingtime == 0.0:
+                    self.inTimer.SetValue('')
+                else:
+                    self.inTimer.SetValue(str(existingtime))
             else:
-                self.inTimer.SetValue("")
+                self.inTimer.SetValue('')
             if self.currentplace <=0:
                 #disable previous
                 self.buttonPrevious.Disable()

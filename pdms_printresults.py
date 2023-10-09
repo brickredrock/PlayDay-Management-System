@@ -54,13 +54,16 @@ def write_data_table(pathoffile, seriesnumber,grouplist):
     #os.startfile(str(group + '.html'), 'print')
     webbrowser.open_new_tab('participant_list.html')
 
-def WinnerReports(pathoffile, AgeGroup):
-    serieslist = []
+def WinnerReports(pathoffile, AgeGroup, seriesnumber):
+    #serieslist = []
     EventString = ['Barrels','StraightAway','Poles']
+    #datafile is the individual event times
     datafile = ''
     os.chdir(pathoffile)
-    timelist = []
-    seriesmax = 3
+    #timelist = []
+    #The current event day that was carried over from the combobox on pdms_showresults
+    seriesmax = int(re.split("Week",seriesnumber)[1])
+
         
     riderlist = []
     with open('riderdata.csv', 'r') as riderinput:
@@ -91,6 +94,7 @@ def WinnerReports(pathoffile, AgeGroup):
                 riderdict = dict(e.split(':') for e in riderappendstring.split(','))
                 riderlist.append(riderdict)
     print(riderlist)
+    #this somehow needs to be more dynamic if using dynamic event creation
     for rider in riderlist:
         if rider['Barrels1'] != '':
             rider['Barrels1'] = float(rider['Barrels1'])
@@ -144,11 +148,11 @@ def WinnerReports(pathoffile, AgeGroup):
             for times in riderlist:
                 if times[currentkey] == 999.999:
                     times[str(currentkey + "points")] = "0"
-                elif times[currentkey] != 0:
+                elif times[currentkey] != 0.0:
                     eventpoints = 10 - recordcounter
                     if eventpoints < 0:
                         eventpoints = 0
-                    if times[currentkey] == 0:
+                    if times[currentkey] == 0.0:
                         eventpoints = 0
                     times[str(currentkey + "points")] = str(eventpoints)
                     recordcounter += 1
@@ -161,7 +165,7 @@ def WinnerReports(pathoffile, AgeGroup):
         for rider in riderlist:
             templiststring = "Rider:" + rider['Rider'] + ",Horse:" + rider['Horse']
             totalscore = 0
-            for x in range(3):
+            for x in range(seriesmax):
                 actualnumber = x + 1
                 templiststring += ",Day " + str(actualnumber) + " Points:" + rider[str(event + str(actualnumber) + "points")]
                 totalscore += int(rider[str(event + str(actualnumber) + "points")])
@@ -195,4 +199,5 @@ if __name__ == "__main__":
     seriesnumber = pattern.findall(weeknumber)
     grouplist = ['5-8','9-12','13-16','17-30','31+']
     AgeGroup = "13-16"
-    WinnerReports(pathoffile,AgeGroup)
+    seriesnumber = "Week1"
+    WinnerReports(pathoffile,AgeGroup,seriesnumber)

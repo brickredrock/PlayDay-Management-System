@@ -79,6 +79,7 @@ class ShowResultsPanel(wx.Panel):
         #lbJThirdPlace = wx.StaticText(self.JackpotBox, id=wx.ID_ANY, label="Third Place:", pos=(5,75))
 
     def DisplayWinner(self, event):
+        seriesnumber = self.Series.GetValue()
         #using Panels for each group, improvement size based on screen size
         barrelpanel = wx.lib.scrolledpanel.ScrolledPanel(self,-1, size=(250,400), pos=(5,390), style=wx.SIMPLE_BORDER)
         barrelpanel.SetupScrolling()
@@ -231,7 +232,7 @@ class ShowResultsPanel(wx.Panel):
                 recordcounter += 1
             self.SeriesBox.Show()
         elif seriesdefinition == "EventChampion":
-            riderlist = WinnerReports(str(os.getcwd()), self.cbAgeGroup.GetValue())
+            riderlist = WinnerReports(str(os.getcwd()), self.cbAgeGroup.GetValue(), seriesnumber)
             self.SeriesBox =  wx.StaticBox(self, pos=(770,5), label="Event Reserve Champion", size=(250,105))
             SeriesBarrelsPlace = wx.TextCtrl(self.SeriesBox, id=wx.ID_ANY, pos=(135,15))
             lbSeriesBarrelsPlace = wx.StaticText(self.SeriesBox, id=wx.ID_ANY, label="Cloverleaf:", pos=(5,15))

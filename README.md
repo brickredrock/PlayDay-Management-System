@@ -1,7 +1,7 @@
 # PlayDay-Management-System
 Open Source PlayDay Management System for tracking events like Cloverleaf Barrels, Straightaway Barrels, and Poles for anyone to use.
 
-Built and tested with Python version 3.10.7.
+Built and tested with Python version 3.10.7.  Binary can be downloaded from here: https://drive.google.com/drive/folders/1c79R3G_ZYfEU7ecjSqfKWFVg0_EI09kx?usp=sharing
 
 Modules installed:
 wxPython

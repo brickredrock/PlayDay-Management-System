@@ -1,3 +1,4 @@
+import webbrowser
 import wx
 import wx.grid as grid
 import os
@@ -409,6 +410,7 @@ class ShowResultsPanel(wx.Panel):
         self.PolesBox.Show()
         self.JackpotBox.Show()
         self.SeriesBox.Show()
+        webbrowser.open_new_tab(str(self.cbAgeGroup.GetValue() + ' Standings.html'))
 
     def SeriesCalculation(self, AgeGroup):
         serieslist = []

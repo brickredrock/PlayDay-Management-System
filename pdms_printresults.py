@@ -235,7 +235,7 @@ def WinnerReports(pathoffile, AgeGroup, seriesnumber):
                     htmlout.write(linein + '\n')
     with open(str(AgeGroup + ' Standings.html'), 'a') as htmlout:
         htmlout.write('</html>\n')
-    webbrowser.open_new_tab(str(AgeGroup + ' Standings.html'))
+    
     return(riderlist,overallstandings)
         
 if __name__ == "__main__":
